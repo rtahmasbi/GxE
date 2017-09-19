@@ -17,6 +17,9 @@
 # model 4:
 # log-like function: "likeloglike_GCTA_model"
 
+# model 5:
+# log-like function: "loglike_model_GxE_h2_costant"
+
 
 
 
@@ -102,16 +105,16 @@ loglike_model_GxE_a_ap_e_ep <- function(phen,moderator,GRM1,I)
 {
     ras_ret <- function(param)
     {
-        s_a <- param[1]
-        s_ap <- param[2]
-        s_e <- param[3]
-        s_ep <- param[4]
-        temp <- s_a + s_ap * moderator
-        T  <- temp %*% t(temp)
-        temp_e=s_e + s_ep * moderator
-        K <- temp_e %*% t(temp_e)
+        s_a    <- param[1]
+        s_ap   <- param[2]
+        s_e    <- param[3]
+        s_ep   <- param[4]
+        temp   <- s_a + s_ap * moderator
+        T      <- temp %*% t(temp)
+        temp_e <- s_e + s_ep * moderator
+        K      <- temp_e %*% t(temp_e)
         
-        Sigma <- T * GRM1 + K * I
+        Sigma  <- T * GRM1 + K * I
         log_det <- determinant(Sigma)$modulus[1]
         if(is.na(log_det))
         {
@@ -151,13 +154,13 @@ loglike_model_GxE_a_e_ep <- function(phen,moderator,GRM1,I)
 {
     ras_ret <- function(param)
     {
-        s_a <- param[1]
-        s_e <- param[2]
-        s_ep <- param[3]
-        temp_e=s_e + s_ep * moderator
-        K <- temp_e %*% t(temp_e)
+        s_a    <- param[1]
+        s_e    <- param[2]
+        s_ep   <- param[3]
+        temp_e <- s_e + s_ep * moderator
+        K      <- temp_e %*% t(temp_e)
         
-        Sigma <- s_a^2 * GRM1 + K * I
+        Sigma  <- s_a^2 * GRM1 + K * I
         
         log_det <- determinant(Sigma)$modulus[1]
         if(is.na(log_det))
@@ -199,11 +202,11 @@ loglike_model_GxE_a_ap_e <- function(phen,moderator,GRM1,I)
 {
     ras_ret <- function(param)
     {
-        s_a <- param[1]
-        s_ap <- param[2]
-        s_e <- param[3]
-        temp <- s_a + s_ap * moderator
-        T  <- temp %*% t(temp)
+        s_a   <- param[1]
+        s_ap  <- param[2]
+        s_e   <- param[3]
+        temp  <- s_a + s_ap * moderator
+        T     <- temp %*% t(temp)
         
         Sigma <- T * GRM1 + s_e^2 * I
         
@@ -237,6 +240,60 @@ test_model_GxE_a_ap_e <- function()
     est         <- ras_MLE(loglike_fun, param0)
     print(est)
 }
+
+
+#################################################################
+#################################################################
+# GxE model 5
+# input: phen, moderator, I=diag(rep(1,nind)), GRM1=1/m*ZZp
+loglike_model_GxE_h2_costant <- function(phen,moderator,GRM1,I)
+{
+    ras_ret <- function(param)
+    {
+        s_a    <- param[1]
+        s_ap   <- param[2]
+        s_e    <- param[3]
+        s_ep   <- s_e * s_ap / s_a
+        
+        temp   <- s_a + s_ap * moderator
+        T      <- temp %*% t(temp)
+        temp_e <- s_e + s_ep * moderator
+        K      <- temp_e %*% t(temp_e)
+        
+        Sigma  <- T * ZZp + K * I
+        
+        log_det <- determinant(Sigma)$modulus[1]
+        if(is.na(log_det))
+        {
+            print("--NA")
+            assign("not_conerged", T, envir = .GlobalEnv)
+            return(0)
+        } else {
+            if (log_det == -Inf)
+            {
+                print("--singular")
+                diag(Sigma) <- diag(Sigma)+.01
+                log_det <- determinant(Sigma)$modulus[1]
+            }
+            return(-(-.5 * log_det - .5 * t(phen) %*% solve(Sigma) %*% (phen)))
+        }
+    }
+    
+}
+
+
+# To estimate
+test_model_GxE_h2_costant <- function()
+{
+    # define phen,moderator,GRM1,I
+    loglike_fun <- loglike_model_GxE_h2_costant(phen,moderator,GRM1,I)
+    # find the initial value, see the paper
+    param0      <- c(0,0,0)
+    est         <- ras_MLE(loglike_fun, param0)
+    print(est)
+}
+
+
 
 
 
