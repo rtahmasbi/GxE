@@ -1,5 +1,23 @@
 
-# Help: There is "test_model_GxE_?" function, for each model, to describe and test that model.
+# Help:
+# We use MLE to estimate the parameters
+# you just need to input the phenotype, moderartor, GRM and the identity matrix I
+# Function "ras_MLE" will maximuze the loglike function
+# See the "test_model_GxE_*" function for more info.
+#
+# model 1:
+# log-like function: "loglike_model_GxE_a_ap_e_ep"
+#
+# model 2:
+# log-like function: "loglike_model_GxE_a_e_ep"
+#
+# model 3:
+# log-like function: "loglike_model_GxE_a_ap_e"
+#
+# model 4:
+# log-like function: "likeloglike_GCTA_model"
+
+
 
 
 
